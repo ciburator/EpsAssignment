@@ -1,6 +1,7 @@
 ﻿namespace EpsClient
 {
     using System.Threading.Tasks;
+    using Common;
     using Newtonsoft.Json;
     using Support;
     using Support.Models;
@@ -14,7 +15,7 @@
 
         public void Initialize()
         {
-            var helper = new TcpHelper(8181);
+            var helper = new TcpHelper(Config.Port);
 
             helper.StartClient();
 
