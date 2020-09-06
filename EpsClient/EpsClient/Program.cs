@@ -61,6 +61,8 @@
                     result.Request
                         = JsonConvert.SerializeObject(new UseDiscountCodeRequestModel(code));
                     break;
+                case "generate":
+                    break;
                 default:
                     result = null;
                     break;

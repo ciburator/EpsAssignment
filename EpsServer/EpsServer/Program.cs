@@ -5,6 +5,7 @@
     using Support.Models;
     using System;
     using Models;
+    using Services;
 
     class Program
     {
@@ -65,6 +66,13 @@
                             result.Message = "Invalid Request";
                         }
 
+                        break;
+
+                    case "generate":
+
+                        var codes = new CodeGenerator().Generate(2000, 8);
+
+                        result.Message = $" 2000 Codes generated";
                         break;
 
                     default:
