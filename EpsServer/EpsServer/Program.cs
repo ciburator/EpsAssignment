@@ -37,9 +37,8 @@
                     break;
 #endif  
                 case "check":
-                    CheckDiscountRequestModel checkRequest = default;
 
-                    if (this.TryDeserialize(command,out checkRequest))
+                    if (this.TryDeserialize(command,out CheckDiscountRequestModel checkRequest))
                     {
                         //check logic
                     }
@@ -49,10 +48,10 @@
                     }
 
                     break;
-                case "usecode":
-                    UseDiscountCodeRequestModel useCodeRequest = default;
 
-                    if (this.TryDeserialize(command, out useCodeRequest))
+                case "usecode":
+
+                    if (this.TryDeserialize(command, out UseDiscountCodeRequestModel useCodeRequest))
                     {
                         //use code logic
                     }
@@ -61,8 +60,9 @@
                         result.Message = "Invalid Request";
                     }
                     break;
+
                 default:
-                    result.Message = "Incorrect command";
+                    result.Message = "Invalid command";
                     break;
             }
 
