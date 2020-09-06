@@ -6,11 +6,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Common\Config.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Common\Config.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\EpsClient\Support\Support.csproj" />
+    <ProjectReference Include="..\Database\Database.csproj" />
   </ItemGroup>
 
 </Project>

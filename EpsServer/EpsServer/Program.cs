@@ -4,6 +4,8 @@
     using Support;
     using Support.Models;
     using System;
+    using Database;
+    using Database.Interfaces;
     using Models;
     using Services;
 
@@ -71,6 +73,8 @@
                     case "generate":
 
                         var codes = new CodeGenerator().Generate(2000, 8);
+
+                        var test = new DatabaseHandler();
 
                         result.Message = $" 2000 Codes generated";
                         break;

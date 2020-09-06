@@ -1,0 +1,30 @@
+BEGIN TRANSACTION;
+DROP TABLE IF EXISTS "Discount";
+CREATE TABLE IF NOT EXISTS "Discount" (
+	"Id"	INTEGER NOT NULL UNIQUE,
+	"Code"	TEXT UNIQUE,
+	"IsUsed"	INTEGER DEFAULT 0,
+	PRIMARY KEY("Id")
+);
+DROP TABLE IF EXISTS "DiscountProduct";
+CREATE TABLE IF NOT EXISTS "DiscountProduct" (
+	"DiscountId"	INTEGER NOT NULL,
+	"ProductId"	INTEGER NOT NULL
+);
+DROP TABLE IF EXISTS "Product";
+CREATE TABLE IF NOT EXISTS "Product" (
+	"Id"	INTEGER NOT NULL UNIQUE,
+	"Code"	TEXT NOT NULL,
+	PRIMARY KEY("Id")
+);
+INSERT INTO "Product" ("Id","Code") VALUES (1,'Product1'),
+ (2,'Product2'),
+ (3,'Product3'),
+ (4,'Product4'),
+ (5,'Product5'),
+ (6,'Product6'),
+ (7,'Product7'),
+ (8,'Product8'),
+ (9,'Product9'),
+ (10,'Product10');
+COMMIT;
