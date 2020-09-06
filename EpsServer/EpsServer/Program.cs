@@ -1,10 +1,10 @@
 ﻿namespace EpsServer
 {
-    using System;
-    using Models;
     using Newtonsoft.Json;
     using Support;
     using Support.Models;
+    using System;
+    using Models;
 
     class Program
     {
@@ -22,48 +22,59 @@
         public void Initialize()
         {
             var helper = new TcpHelper(8181);
-             helper.StartServerAsync(RequestCallback).ConfigureAwait(true);
+            helper.StartServerAsync(RequestCallback).ConfigureAwait(true);
         }
 
         public TcpResponse RequestCallback(string command)
         {
             TcpResponse result = new TcpResponse();
 
-            switch (command.ToLower())
+            if (TryDeserialize(command, out RequestModel request))
             {
+                switch (request.Command.ToLower())
+                {
 #if DEBUG
-                case "check-service":
-                    result.Message = "Connection successful";
-                    break;
-#endif  
-                case "check":
+                    case "check-service":
+                        result.Message = "Connection successful";
+                        break;
+#endif
+                    case "check":
 
-                    if (this.TryDeserialize(command,out CheckDiscountRequestModel checkRequest))
-                    {
-                        //check logic
-                    }
-                    else
-                    {
-                        result.Message = "Invalid Request";
-                    }
+                        if (this.TryDeserialize(command, out CheckDiscountRequestModel checkRequest))
+                        {
+                            result.Message
+                                = JsonConvert.SerializeObject(
+                                    new CheckDiscountResponseModel(1, new[] {"test", "test1"}));
+                        }
+                        else
+                        {
+                            result.Message = "Invalid Request";
+                        }
 
-                    break;
+                        break;
 
-                case "usecode":
+                    case "usecode":
 
-                    if (this.TryDeserialize(command, out UseDiscountCodeRequestModel useCodeRequest))
-                    {
-                        //use code logic
-                    }
-                    else
-                    {
-                        result.Message = "Invalid Request";
-                    }
-                    break;
+                        if (this.TryDeserialize(command, out UseDiscountCodeRequestModel useCodeRequest))
+                        {
+                            result.Message
+                                = JsonConvert.SerializeObject(new UseDiscountCodeResponseModel(1));
+                        }
+                        else
+                        {
+                            result.Message = "Invalid Request";
+                        }
 
-                default:
-                    result.Message = "Invalid command";
-                    break;
+                        break;
+
+                    default:
+                        result.Message = "Invalid command";
+                        break;
+                }
+            }
+            else
+            {
+                result.Message = "Invalid command";
             }
 
             return result;

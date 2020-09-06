@@ -10,6 +10,12 @@
             return Console.ReadLine();
         }
 
+        public static string RequestInput(string message)
+        {
+            Console.Write($"{message}: ");
+            return Console.ReadLine();
+        }
+
         public static void Log(string message)
         {
             Console.WriteLine($"{DateTime.Now} : {message}");

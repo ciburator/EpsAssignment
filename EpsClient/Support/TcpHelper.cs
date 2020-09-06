@@ -1,19 +1,18 @@
 ﻿namespace Support
 {
+    using Common;
+    using Models;
     using System;
     using System.Net;
     using System.Net.Sockets;
     using System.Text;
-    using System.Threading;
     using System.Threading.Tasks;
-    using Common;
-    using Models;
+    using Newtonsoft.Json;
 
     public class TcpHelper
     {
-        private int port;
-        private IPAddress ipAddress;
-        private bool accept { get; set; } = false;
+        private readonly int port;
+        private readonly IPAddress ipAddress;
 
         private TcpClient Client { get; set; }
         private TcpListener Server { get; set; }
@@ -31,8 +30,6 @@
             this.Server = new TcpListener(this.ipAddress, this.port);
 
             this.Server.Start();
-
-            accept = true;
 
             ConsoleHelper.Log($"Server started. Listening to TCP clients at 127.0.0.1:{port}");
 
@@ -69,24 +66,20 @@
             this.Client.Client.Connect(this.ipAddress, this.port);
 
             ConsoleHelper.Log($"Connected to {this.ipAddress}:{this.port}");
+        }
 
-            
-
-            string command = string.Empty;
-
-            while (command != "exit")
+        public Task Send(RequestModel request, Func<string, Task> ResponseCallback)
+        {
+            if (!this.Client.Connected)
             {
-                command = ConsoleHelper.RequestCommand();
-
-                if (command != string.Empty)
-                {
-                    this.Client.Client.Send(Encoding.ASCII.GetBytes(command));
-
-                    Task result = Task.Run(() => ReadDataLoopAsync(this.Client));
-
-                    result.Wait();
-                }
+                this.StartClient(); 
             }
+
+            this.Client.Client.Send(Encoding.ASCII.GetBytes(JsonConvert.SerializeObject(request)));
+
+            Task result = ReadDataLoop(this.Client, ResponseCallback);
+
+            return result;
         }
 
         private async Task Listen(TcpClient client)
@@ -100,16 +93,8 @@
 
                     while (state == ActionState.Continue)
                     {
-                        byte[] bytes;
-                        StringBuilder myCompleteMessage = new StringBuilder();
-                        string message = string.Empty;
-
-                        if (client.ReceiveBufferSize > 0)
-                        {
-                            bytes = new byte[client.ReceiveBufferSize];
-                            int numberOfBytes = stream.Read(bytes, 0, client.ReceiveBufferSize);
-                            message = Encoding.ASCII.GetString(bytes, 0, numberOfBytes);
-                        }
+                        string message 
+                            = this.ReadData(client);
 
                         ConsoleHelper.LogRequest(message);
 
@@ -124,8 +109,6 @@
                             byte[] send_data = Encoding.ASCII.GetBytes(responseMessage);
 
                             await stream.WriteAsync(send_data, 0, send_data.Length);
-
-                            message = string.Empty;
                         }
                     }
                 }
@@ -136,51 +119,48 @@
             }
         }
 
-        private async Task ReadDataLoopAsync(TcpClient helper)
+        private Task ReadDataLoop(TcpClient client, Func<string, Task> ResponseCallback)
         {
             while (true)
             {
-                if (!helper.Connected)
-                    break;
+                string response = ReadData(client);
 
-                string response = string.Empty;
-                response = ReadData(helper);
-                ConsoleHelper.LogResponse(response);
+                return ResponseCallback(response);
 
                 // left if i want to implement continuous response
-                if (response != string.Empty)
+                if (response == string.Empty
+                    && !client.Connected)
                 {
-                    break;
+                    return Task.CompletedTask;
                 }
             }
         }
 
-        private string ReadData(TcpClient helper)
+        private string ReadData(TcpClient client)
         {
-            string result = string.Empty;
-
-            byte[] data = new byte[1024];
-
-            NetworkStream stream = helper.GetStream();
-
-            byte[] myReadBuffer = new byte[1024];
-
-            StringBuilder myCompleteMessage = new StringBuilder();
-
-            int numberOfBytesRead = 0;
-
-            do
+            string message = string.Empty;
+            try
             {
-                numberOfBytesRead = stream.Read(myReadBuffer, 0, myReadBuffer.Length);
+                NetworkStream stream = client.GetStream();
 
-                myCompleteMessage.AppendFormat("{0}", Encoding.ASCII.GetString(myReadBuffer, 0, numberOfBytesRead));
+                if (client.ReceiveBufferSize > 0)
+                {
+                    byte[] bytes = new byte[client.ReceiveBufferSize];
 
+                    int numberOfBytes
+                        = stream.Read(bytes, 0, client.ReceiveBufferSize);
+
+                    message
+                        = Encoding.ASCII.GetString(bytes, 0, numberOfBytes);
+                }
+
+                return message;
             }
-            while (stream.DataAvailable);
-
-            result = myCompleteMessage.ToString();
-
-            return result;
+            catch (Exception e)
+            {
+                ConsoleHelper.Log(e.ToString());
+                return message;
+            }
         }
     }
 }

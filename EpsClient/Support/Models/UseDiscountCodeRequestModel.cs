@@ -1,4 +1,4 @@
-﻿namespace EpsServer.Models
+﻿namespace Support.Models
 {
     public class UseDiscountCodeRequestModel
     {
