@@ -2,5 +2,6 @@
 {
     public interface IDatabaseHandler
     {
+        void ReadData();
     }
 }

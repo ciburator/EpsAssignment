@@ -11,6 +11,8 @@
 
     class Program
     {
+        private IDatabaseHandler DbHandler { get; set; }
+
         static void Main(string[] args)
         {
             new Program().Initialize();
@@ -24,6 +26,7 @@
 
         public void Initialize()
         {
+            this.DbHandler = new DatabaseHandler();
             var helper = new TcpHelper(8181);
             helper.StartServerAsync(RequestCallback).ConfigureAwait(true);
         }
@@ -39,6 +42,10 @@
 #if DEBUG
                     case "check-service":
                         result.Message = "Connection successful";
+                        break;
+
+                    case "select":
+                        this.DbHandler.ReadData();
                         break;
 #endif
                     case "check":

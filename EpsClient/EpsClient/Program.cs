@@ -46,6 +46,9 @@
 #if DEBUG
                 case "check-service":
                     break;
+
+                case "select":
+                    break;
 #endif
                 case "check":
                     string cardNumber 
