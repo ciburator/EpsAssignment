@@ -1,5 +1,6 @@
 ﻿namespace EpsClient
 {
+    using System.Linq;
     using System.Threading.Tasks;
     using Common;
     using Newtonsoft.Json;
@@ -21,7 +22,7 @@
 
             while (true)
             {
-                RequestModel request 
+                RequestModel request
                     = this.HandleCommand(ConsoleHelper.RequestCommand());
 
                 if (request != null)
@@ -49,12 +50,32 @@
 
                 case "select":
                     break;
+
+                case "generate":
+                    string products 
+                        = ConsoleHelper.RequestInput("Please input products separated by comma (',')");
+
+                    if (!string.IsNullOrEmpty(products))
+                    {
+                        string[] items = products.Split(',')
+                            .Select(x => x.Trim())
+                            .Where(x => !string.IsNullOrWhiteSpace(x))
+                            .ToArray();
+
+                        result.Request
+                            = JsonConvert.SerializeObject(new GeneratedDiscountRequestModel(items));
+                    }
+                    else
+                    {
+                        ConsoleHelper.Log("Invalid input");
+                    }
+                    break;
 #endif
                 case "check":
-                    string cardNumber 
+                    string cardNumber
                         = ConsoleHelper.RequestInput(nameof(CheckDiscountRequestModel.CardNumber));
 
-                    result.Request 
+                    result.Request
                         = JsonConvert.SerializeObject(new CheckDiscountRequestModel(cardNumber));
                     break;
                 case "useCode":
@@ -63,8 +84,6 @@
 
                     result.Request
                         = JsonConvert.SerializeObject(new UseDiscountCodeRequestModel(code));
-                    break;
-                case "generate":
                     break;
                 default:
                     result = null;

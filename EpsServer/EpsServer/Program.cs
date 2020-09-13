@@ -4,8 +4,10 @@
     using Support;
     using Support.Models;
     using System;
+    using System.Collections.Generic;
     using Database;
     using Database.Interfaces;
+    using Database.Models;
     using Models;
     using Services;
 
@@ -43,18 +45,17 @@
                     case "check-service":
                         result.Message = "Connection successful";
                         break;
-
-                    case "select":
-                        this.DbHandler.ReadData();
-                        break;
 #endif
                     case "check":
 
-                        if (this.TryDeserialize(command, out CheckDiscountRequestModel checkRequest))
+                        if (this.TryDeserialize(request.Request, out CheckDiscountRequestModel checkRequest))
                         {
+                            DiscountModel discount 
+                                = this.DbHandler.CheckDiscountCode(checkRequest.CardNumber);
+
                             result.Message
                                 = JsonConvert.SerializeObject(
-                                    new CheckDiscountResponseModel(1, new[] {"test", "test1"}));
+                                    new CheckDiscountResponseModel(discount.IsUsed, discount.ProductCodes));
                         }
                         else
                         {
@@ -65,10 +66,10 @@
 
                     case "usecode":
 
-                        if (this.TryDeserialize(command, out UseDiscountCodeRequestModel useCodeRequest))
+                        if (this.TryDeserialize(request.Request, out UseDiscountCodeRequestModel useCodeRequest))
                         {
                             result.Message
-                                = JsonConvert.SerializeObject(new UseDiscountCodeResponseModel(1));
+                                = JsonConvert.SerializeObject(new UseDiscountCodeResponseModel(this.DbHandler.UseCode(useCodeRequest.Code)));
                         }
                         else
                         {
@@ -79,11 +80,17 @@
 
                     case "generate":
 
-                        var codes = new CodeGenerator().Generate(2000, 8);
+                        if (this.TryDeserialize(request.Request, out GeneratedDiscountRequestModel generatedDiscountRequest)
+                            && this.DbHandler.CheckProduct(generatedDiscountRequest.Products))
+                        {
+                            this.DbHandler.GenerateCodes(new CodeGenerator().Generate(2000, 8), generatedDiscountRequest.Products);
 
-                        var test = new DatabaseHandler();
-
-                        result.Message = $" 2000 Codes generated";
+                            result.Message = $" 2000 Codes generated";
+                        }
+                        else
+                        {
+                            result.Message = "Invalid Request";
+                        }
                         break;
 
                     default:
